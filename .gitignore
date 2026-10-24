@@ -1,0 +1,41 @@
+# Entornos virtuales
+venv/
+.env/
+.venv/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+.tox/
+.mypy_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb
+
+# Datos y figuras generadas
+figures/*.png
+figures/*.pdf
+figures/*.jpg
+data/*.csv
+data/*.parquet
+
+# Archivos de configuración local
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Archivos del proyecto (según especificación)
+AGENTS.md
+TRABAJO.md
+
+# OS
+.DS_Store
+Thumbs.db
