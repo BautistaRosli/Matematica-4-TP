@@ -1,10 +1,6 @@
 # A.1 Modelado Cuadrático y Derivación
 El modelo cuadrático para ajustar el consumo eléctrico $\hat{y}$ en función de los segundos desde medianoche $x$ es dado por:
-$
-\begin{equation}
-\hat{y}(x) = \hat{\beta}_0 + \hat{\beta}_1 x + \hat{\beta}_2 x^2
-\end{equation}
-$
+$\begin{equation} \hat{y}(x) = \hat{\beta}_0 + \hat{\beta}_1 x + \hat{\beta}_2 x^2 \end{equation} $
 Los estimadores de mínimos cuadrados ordinarios se obtienen como:
 (T es porque es una matriz, de 3x3 (cantidad de parametros) y asi sacar la matriz inversa para poder despejar $\hat{\beta}_0$, $\hat{\beta}_1$ y $\hat{\beta}_2$)
 $
