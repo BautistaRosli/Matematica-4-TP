@@ -68,27 +68,35 @@ Igualando ambas derivadas parciales a cero para llegar al punto crítico minimiz
 
 1. **Primera ecuación:**
 
+
    $$
    -2 \sum_{i=1}^{n} (y_i - b_0 - b_1 x_i) = 0 \implies \sum_{i=1}^{n} y_i - \sum_{i=1}^{n} b_0 - b_1 \sum_{i=1}^{n} x_i = 0
    $$
 
+
    Como $\sum_{i=1}^{n} b_0 = n b_0$:
+
 
    $$
    n b_0 + b_1 \sum_{i=1}^{n} x_i = \sum_{i=1}^{n} y_i \quad \text{--- (1ª Ecuación Normal)}
    $$
 
+
 2. **Segunda ecuación:**
+
 
    $$
    -2 \sum_{i=1}^{n} x_i (y_i - b_0 - b_1 x_i) = 0 \implies \sum_{i=1}^{n} x_i y_i - b_0 \sum_{i=1}^{n} x_i - b_1 \sum_{i=1}^{n} x_i^2 = 0
    $$
 
+
    $$
    b_0 \sum_{i=1}^{n} x_i + b_1 \sum_{i=1}^{n} x_i^2 = \sum_{i=1}^{n} x_i y_i \quad \text{--- (2ª Ecuación Normal)}
    $$
 
+
 Organizado en formato de sistema $2 \times 2$:
+
 
 $$
 \begin{cases}
@@ -103,41 +111,62 @@ $$
 
 1. **Despeje de $b_0$ de la 1ª Ecuación Normal:**
 
+
    $$
    b_0 = \frac{1}{n} \sum_{i=1}^{n} y_i - b_1 \frac{1}{n} \sum_{i=1}^{n} x_i = \bar{y} - b_1 \bar{x}
    $$
 
+
 2. **Sustitución de $b_0$ en la 2ª Ecuación Normal:**
+
 
    $$
    \left(\bar{y} - b_1 \bar{x}\right) \sum_{i=1}^{n} x_i + b_1 \sum_{i=1}^{n} x_i^2 = \sum_{i=1}^{n} x_i y_i
    $$
 
+
+
    $$
    \bar{y} \sum_{i=1}^{n} x_i - b_1 \bar{x} \sum_{i=1}^{n} x_i + b_1 \sum_{i=1}^{n} x_i^2 = \sum_{i=1}^{n} x_i y_i
    $$
+
+
 
    $$
    b_1 \left( \sum_{i=1}^{n} x_i^2 - \bar{x} \sum_{i=1}^{n} x_i \right) = \sum_{i=1}^{n} x_i y_i - \bar{y} \sum_{i=1}^{n} x_i
    $$
 
+
+
 3. **Uso de las relaciones muestrales centradas en la media:**
    Recordando que $\sum x_i = n \bar{x}$ y $\sum y_i = n \bar{y}$:
+
+
 
    $$
    \sum_{i=1}^{n} x_i^2 - \bar{x} (n \bar{x}) = \sum_{i=1}^{n} x_i^2 - n \bar{x}^2 = \sum_{i=1}^{n} (x_i - \bar{x})^2 = S_{xx}
    $$
 
+
+
    $$
    \sum_{i=1}^{n} x_i y_i - \bar{y} (n \bar{x}) = \sum_{i=1}^{n} x_i y_i - n \bar{x} \bar{y} = \sum_{i=1}^{n} (x_i - \bar{x})(y_i - \bar{y}) = S_{xy}
    $$
 
+
+
 4. **Expresiones finales de los estimadores MCO:**
+
+
 
 $$
 \hat{\beta}_1 = \frac{S_{xy}}{S_{xx}} = \frac{\displaystyle\sum_{i=1}^{n} (x_i - \bar{x})(y_i - \bar{y})}{\displaystyle\sum_{i=1}^{n} (x_i - \bar{x})^2}
 $$
 
+
+
 $$
 \hat{\beta}_0 = \bar{y} - \hat{\beta}_1 \bar{x}
 $$
+
+
