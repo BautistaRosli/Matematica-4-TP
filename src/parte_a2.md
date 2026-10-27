@@ -67,16 +67,19 @@ $$
 Igualando ambas derivadas parciales a cero para llegar al punto crítico minimizante:
 
 1. **Primera ecuación:**
+
    $$
    -2 \sum_{i=1}^{n} (y_i - b_0 - b_1 x_i) = 0 \implies \sum_{i=1}^{n} y_i - \sum_{i=1}^{n} b_0 - b_1 \sum_{i=1}^{n} x_i = 0
    $$
 
    Como $\sum_{i=1}^{n} b_0 = n b_0$:
+
    $$
    n b_0 + b_1 \sum_{i=1}^{n} x_i = \sum_{i=1}^{n} y_i \quad \text{--- (1ª Ecuación Normal)}
    $$
 
 2. **Segunda ecuación:**
+
    $$
    -2 \sum_{i=1}^{n} x_i (y_i - b_0 - b_1 x_i) = 0 \implies \sum_{i=1}^{n} x_i y_i - b_0 \sum_{i=1}^{n} x_i - b_1 \sum_{i=1}^{n} x_i^2 = 0
    $$
@@ -99,11 +102,13 @@ $$
 ### 2.4 Despeje Analítico Completo de los Estimadores MCO
 
 1. **Despeje de $b_0$ de la 1ª Ecuación Normal:**
+
    $$
    b_0 = \frac{1}{n} \sum_{i=1}^{n} y_i - b_1 \frac{1}{n} \sum_{i=1}^{n} x_i = \bar{y} - b_1 \bar{x}
    $$
 
 2. **Sustitución de $b_0$ en la 2ª Ecuación Normal:**
+
    $$
    \left(\bar{y} - b_1 \bar{x}\right) \sum_{i=1}^{n} x_i + b_1 \sum_{i=1}^{n} x_i^2 = \sum_{i=1}^{n} x_i y_i
    $$
