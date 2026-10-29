@@ -30,20 +30,23 @@ Se analiza el consumo eléctrico de una planta siderúrgica (DAEWOO Steel Co. Lt
 ### 2.1 Formulación Matemática
 
 Modelo cuadrático propuesto:
-$$\hat{y}(x) = \beta_0 + \beta_1 x + \beta_2 x^2$$
+$$\hat{y}(x) = \hat{\beta}_0 + \hat{\beta}_1 x + \hat{\beta}_2 x^2$$
 
 donde $x = \text{NSM}$ (segundos desde medianoche) e $y = \text{Usage\_kWh}$ (kWh).
 
-Matriz de diseño $X \in \mathbb{R}^{n \times 3}$ con columnas $[1, x, x^2]$. Estimador MCO:
-$$\hat{\beta} = (X^T X)^{-1} X^T Y$$
+Matriz de diseño $X \in \mathbb{R}^{n \times 3}$ con columnas $[1, x, x^2]$. Los estimadores de mínimos cuadrados ordinarios se obtienen como:
+
+$$\hat{\boldsymbol{\beta}} = (X^T X)^{-1} X^T Y$$
+
+> **Justificación de la transpuesta:** se escribe $X^T$ porque el sistema normal $X^T X\,\hat{\boldsymbol{\beta}} = X^T Y$ involucra una matriz cuadrada de $3 \times 3$ (una fila/columna por cada parámetro a estimar); solo un sistema así es compatible determinado y admite matriz inversa, de modo que se pueden despejar $\hat{\beta}_0$, $\hat{\beta}_1$ y $\hat{\beta}_2$ explícitamente.
 
 ### 2.2 Resultados Numéricos (Python + NumPy, validado con Statsmodels)
 
 | Parámetro | Valor | Notación científica |
 |-----------|-------|---------------------|
-| $\hat{\beta}_0$ | -16,420996 | -1,6421 $\times$ 10¹ |
-| $\hat{\beta}_1$ | 0,002467693 | 2,4677 $\times$ 10⁻³ |
-| $\hat{\beta}_2$ | -0,00000002518233 | -2,5182 $\times$ 10⁻⁸ |
+| $\hat{\beta}_0$ | -16,420996 | -1,6421 $\times 10^{1}$ |
+| $\hat{\beta}_1$ | 0,002467693 | 2,4677 $\times 10^{-3}$ |
+| $\hat{\beta}_2$ | -0,00000002518233 | -2,5182 $\times 10^{-8}$ |
 
 **Ecuación ajustada:**
 $$\boxed{\hat{y}(x) = -16,4210 + 2,4677 \times 10^{-3} \, x - 2,5182 \times 10^{-8} \, x^2}$$
@@ -54,10 +57,15 @@ Validación cruzada: discrepancia máxima con Statsmodels $< 10^{-10}$ ✓
 
 ### 3.1 Desarrollo Analítico
 
-$$\frac{d\hat{y}}{dx} = \frac{d}{dx}(\hat{\beta}_0) + \frac{d}{dx}(\hat{\beta}_1 x) + \frac{d}{dx}(\hat{\beta}_2 x^2) = \hat{\beta}_1 + 2\hat{\beta}_2 x$$
+La derivada primera representa la tasa instantánea de variación del consumo:
+$$\frac{d\hat{y}}{dx} = \frac{d}{dx}(\hat{\beta}_0) + \frac{d}{dx}(\hat{\beta}_1 x) + \frac{d}{dx}(\hat{\beta}_2 x^2) = \hat{\beta}_1 + 2\hat{\beta}_2 x \quad \left[\text{kWh/s}\right]$$
 
 Sustituyendo valores:
 $$\frac{d\hat{y}}{dx} = 2,4677 \times 10^{-3} - 5,0365 \times 10^{-8} \, x \quad \text{(kWh/s)}$$
+
+Para evaluar la tasa en términos horarios ($\text{kWh/h}$), se aplica la conversión de unidades:
+
+$$\left(\frac{d\hat{y}}{dx}\right)_{\text{hora}} = 3600 \cdot (\hat{\beta}_1 + 2\hat{\beta}_2 x) \quad \left[\text{kWh/h}\right]$$
 
 ### 3.2 Evaluación en Puntos Representativos
 
@@ -75,7 +83,9 @@ $$\frac{d\hat{y}}{dx} = 2,4677 \times 10^{-3} - 5,0365 \times 10^{-8} \, x \quad
 $$\hat{y}_{\text{lin}}(x) = 13,9376 + 3,1460 \times 10^{-4} \, x$$
 
 Derivada constante:
-$$\frac{d\hat{y}_{\text{lin}}}{dx} = \hat{\beta}_1 = 3,1460 \times 10^{-4} \text{ kWh/s} = \boxed{1,13 \text{ kWh/hora}}$$
+$$\frac{d\hat{y}_{\text{lin}}}{dx} = \hat{\beta}_1 = \text{cte.} = 3,1460 \times 10^{-4} \text{ kWh/s} = \boxed{1,13 \text{ kWh/hora}}$$
+
+> A diferencia del modelo cuadrático, el modelo lineal asume una tasa de cambio constante a lo largo de todo el día: no importa la hora, el consumo siempre crece (o decrece) al mismo ritmo.
 
 ### 4.2 Comparación de Supuestos Estructurales
 
@@ -88,13 +98,18 @@ $$\frac{d\hat{y}_{\text{lin}}}{dx} = \hat{\beta}_1 = 3,1460 \times 10^{-4} \text
 
 **Conclusión:** El modelo lineal es físicamente inadecuado para una acería con turnos definidos. El modelo cuadrático captura la no linealidad horaria intrínseca del proceso productivo.
 
+![Comparación de los modelos lineal y cuadrático ajustados sobre Usage_kWh vs NSM.](figures/A1_modelos_comparacion.png)
+
 ## 5. Punto Crítico del Modelo Cuadrático
 
 ### 5.1 Cálculo y Clasificación
 
+El punto crítico $x_c$ del modelo cuadrático se halla resolviendo $\frac{d\hat{y}}{dx} = 0$:
+
 $$x_c = -\frac{\hat{\beta}_1}{2\hat{\beta}_2} = -\frac{2,4677 \times 10^{-3}}{2 \times (-2,5182 \times 10^{-8})} = 48\,996,53 \text{ s}$$
 
-Derivada segunda: $\frac{d^2\hat{y}}{dx^2} = 2\hat{\beta}_2 = -5,0365 \times 10^{-8} < 0$ → **Máximo absoluto** (parábola cóncava).
+Su naturaleza se determina mediante la derivada segunda:
+$$\frac{d^2\hat{y}}{dx^2} = 2\hat{\beta}_2 = -5,0365 \times 10^{-8} < 0 \quad \Rightarrow \quad \textbf{Máximo absoluto} \text{ (parábola cóncava).}$$
 
 ### 5.2 Verificación y Conversión Horaria
 
@@ -114,70 +129,94 @@ Consumo en el máximo: $\hat{y}(x_c) = 44,03 \text{ kWh}$ (por intervalo de 15 m
 
 ## 6. Desarrollo Analítico Completo
 
-### 6.1 Función Objetivo
+### 6.1 Planteo de la Función Objetivo
 
-Para la regresión lineal simple de `Usage_kWh` ($y$) sobre `Lagging_Current_Reactive.Power_kVarh` ($x$):
+Para la regresión lineal simple de $y$ (`Usage_kWh`) sobre $x$ (`Lagging_Current_Reactive.Power_kVarh`), la función de suma de residuos al cuadrado (SCE) a minimizar en función de los parámetros $b_0$ y $b_1$ es:
 
-$$f(b_0, b_1) = \sum_{i=1}^{n} [y_i - (b_0 + b_1 x_i)]^2$$
+$$f(b_0, b_1) = \sum_{i=1}^{n} \left[ y_i - (b_0 + b_1 x_i) \right]^2$$
 
 ### 6.2 Derivada Parcial respecto a $b_0$
 
-$$\begin{aligned}
-\frac{\partial f}{\partial b_0} 
-&= \frac{\partial}{\partial b_0} \sum_{i=1}^{n} [y_i - b_0 - b_1 x_i]^2 \\
-&= \sum_{i=1}^{n} \frac{\partial}{\partial b_0} [y_i - b_0 - b_1 x_i]^2 \quad \text{(linearidad de la derivada)} \\
-&= \sum_{i=1}^{n} 2[y_i - b_0 - b_1 x_i] \cdot \frac{\partial}{\partial b_0}[y_i - b_0 - b_1 x_i] \quad \text{(regla de la cadena)} \\
-&= \sum_{i=1}^{n} 2[y_i - b_0 - b_1 x_i] \cdot (-1) \\
-&= -2 \sum_{i=1}^{n} (y_i - b_0 - b_1 x_i)
-\end{aligned}$$
+Aplicando la propiedad de linealidad del operador sumatoria y la regla de la cadena:
+
+$$\frac{\partial f}{\partial b_0} = \frac{\partial}{\partial b_0} \sum_{i=1}^{n} \left[ y_i - b_0 - b_1 x_i \right]^2$$
+
+$$\frac{\partial f}{\partial b_0} = \sum_{i=1}^{n} \frac{\partial}{\partial b_0} \left[ y_i - b_0 - b_1 x_i \right]^2$$
+
+$$\frac{\partial f}{\partial b_0} = \sum_{i=1}^{n} 2 \left[ y_i - b_0 - b_1 x_i \right] \cdot \frac{\partial}{\partial b_0} \left( y_i - b_0 - b_1 x_i \right)$$
+
+Puesto que $\frac{\partial}{\partial b_0}(y_i - b_0 - b_1 x_i) = -1$:
+
+$$\frac{\partial f}{\partial b_0} = \sum_{i=1}^{n} 2 \left[ y_i - b_0 - b_1 x_i \right] \cdot (-1)$$
 
 $$\boxed{\frac{\partial f}{\partial b_0} = -2 \sum_{i=1}^{n} (y_i - b_0 - b_1 x_i)}$$
 
 ### 6.3 Derivada Parcial respecto a $b_1$
 
-$$\begin{aligned}
-\frac{\partial f}{\partial b_1} 
-&= \frac{\partial}{\partial b_1} \sum_{i=1}^{n} [y_i - b_0 - b_1 x_i]^2 \\
-&= \sum_{i=1}^{n} 2[y_i - b_0 - b_1 x_i] \cdot \frac{\partial}{\partial b_1}[y_i - b_0 - b_1 x_i] \\
-&= \sum_{i=1}^{n} 2[y_i - b_0 - b_1 x_i] \cdot (-x_i) \\
-&= -2 \sum_{i=1}^{n} x_i(y_i - b_0 - b_1 x_i)
-\end{aligned}$$
+De manera análoga, aplicando la regla de la cadena:
 
-$$\boxed{\frac{\partial f}{\partial b_1} = -2 \sum_{i=1}^{n} x_i(y_i - b_0 - b_1 x_i)}$$
+$$\frac{\partial f}{\partial b_1} = \frac{\partial}{\partial b_1} \sum_{i=1}^{n} \left[ y_i - b_0 - b_1 x_i \right]^2$$
 
-### 6.4 Ecuaciones Normales (Igualando a Cero)
+$$\frac{\partial f}{\partial b_1} = \sum_{i=1}^{n} \frac{\partial}{\partial b_1} \left[ y_i - b_0 - b_1 x_i \right]^2$$
 
-$$\begin{aligned}
-\frac{\partial f}{\partial b_0} = 0 &\implies \sum_{i=1}^{n} (y_i - b_0 - b_1 x_i) = 0 \implies \sum y_i = n b_0 + b_1 \sum x_i \\
-\frac{\partial f}{\partial b_1} = 0 &\implies \sum_{i=1}^{n} x_i(y_i - b_0 - b_1 x_i) = 0 \implies \sum x_i y_i = b_0 \sum x_i + b_1 \sum x_i^2
-\end{aligned}$$
+$$\frac{\partial f}{\partial b_1} = \sum_{i=1}^{n} 2 \left[ y_i - b_0 - b_1 x_i \right] \cdot \frac{\partial}{\partial b_1} \left( y_i - b_0 - b_1 x_i \right)$$
 
-**Sistema de ecuaciones normales:**
+Como $\frac{\partial}{\partial b_1}(y_i - b_0 - b_1 x_i) = -x_i$:
+
+$$\frac{\partial f}{\partial b_1} = \sum_{i=1}^{n} 2 \left[ y_i - b_0 - b_1 x_i \right] \cdot (-x_i)$$
+
+$$\boxed{\frac{\partial f}{\partial b_1} = -2 \sum_{i=1}^{n} x_i (y_i - b_0 - b_1 x_i)}$$
+
+### 6.4 Planteo del Sistema de Ecuaciones Normales
+
+Igualando ambas derivadas parciales a cero para llegar al punto crítico minimizante:
+
+**1. Primera ecuación:**
+
+$$-2 \sum_{i=1}^{n} (y_i - b_0 - b_1 x_i) = 0 \implies \sum_{i=1}^{n} y_i - \sum_{i=1}^{n} b_0 - b_1 \sum_{i=1}^{n} x_i = 0$$
+
+Como $\sum_{i=1}^{n} b_0 = n b_0$:
+
+$$n b_0 + b_1 \sum_{i=1}^{n} x_i = \sum_{i=1}^{n} y_i \quad \text{(1ª Ecuación Normal)}$$
+
+**2. Segunda ecuación:**
+
+$$-2 \sum_{i=1}^{n} x_i (y_i - b_0 - b_1 x_i) = 0 \implies \sum_{i=1}^{n} x_i y_i - b_0 \sum_{i=1}^{n} x_i - b_1 \sum_{i=1}^{n} x_i^2 = 0$$
+
+$$b_0 \sum_{i=1}^{n} x_i + b_1 \sum_{i=1}^{n} x_i^2 = \sum_{i=1}^{n} x_i y_i \quad \text{(2ª Ecuación Normal)}$$
+
+Organizado en formato de sistema $2 \times 2$:
 
 $$\begin{cases}
-n b_0 + b_1 \displaystyle\sum_{i=1}^{n} x_i = \displaystyle\sum_{i=1}^{n} y_i \\[1em]
+n b_0 + b_1 \displaystyle\sum_{i=1}^{n} x_i = \displaystyle\sum_{i=1}^{n} y_i \\[12pt]
 b_0 \displaystyle\sum_{i=1}^{n} x_i + b_1 \displaystyle\sum_{i=1}^{n} x_i^2 = \displaystyle\sum_{i=1}^{n} x_i y_i
 \end{cases}$$
 
-### 6.5 Resolución Analítica del Sistema
+### 6.5 Despeje Analítico Completo de los Estimadores MCO
 
-De la primera ecuación:
-$$b_0 = \frac{1}{n}\sum y_i - b_1 \frac{1}{n}\sum x_i = \bar{y} - b_1 \bar{x}$$
+**1. Despeje de $b_0$ de la 1ª Ecuación Normal:**
 
-Sustituyendo en la segunda:
-$$(\bar{y} - b_1 \bar{x}) \sum x_i + b_1 \sum x_i^2 = \sum x_i y_i$$
+$$b_0 = \frac{1}{n} \sum_{i=1}^{n} y_i - b_1 \frac{1}{n} \sum_{i=1}^{n} x_i = \bar{y} - b_1 \bar{x}$$
 
-$$\bar{y} \sum x_i - b_1 \bar{x} \sum x_i + b_1 \sum x_i^2 = \sum x_i y_i$$
+**2. Sustitución de $b_0$ en la 2ª Ecuación Normal:**
 
-$$b_1 \left(\sum x_i^2 - \bar{x} \sum x_i\right) = \sum x_i y_i - \bar{y} \sum x_i$$
+$$\left(\bar{y} - b_1 \bar{x}\right) \sum_{i=1}^{n} x_i + b_1 \sum_{i=1}^{n} x_i^2 = \sum_{i=1}^{n} x_i y_i$$
 
-Notando que:
-- $\sum x_i^2 - \bar{x} \sum x_i = \sum x_i^2 - n\bar{x}^2 = \sum (x_i - \bar{x})^2 = S_{xx}$
-- $\sum x_i y_i - \bar{y} \sum x_i = \sum x_i y_i - n\bar{x}\bar{y} = \sum (x_i - \bar{x})(y_i - \bar{y}) = S_{xy}$
+$$\bar{y} \sum_{i=1}^{n} x_i - b_1 \bar{x} \sum_{i=1}^{n} x_i + b_1 \sum_{i=1}^{n} x_i^2 = \sum_{i=1}^{n} x_i y_i$$
 
-Se obtienen los **estimadores de mínimos cuadrados**:
+$$b_1 \left( \sum_{i=1}^{n} x_i^2 - \bar{x} \sum_{i=1}^{n} x_i \right) = \sum_{i=1}^{n} x_i y_i - \bar{y} \sum_{i=1}^{n} x_i$$
 
-$$\boxed{\hat{\beta}_1 = \frac{S_{xy}}{S_{xx}}}$$
+**3. Uso de las relaciones muestrales centradas en la media:**
+
+Recordando que $\sum_{i=1}^{n} x_i = n \bar{x}$ y $\sum_{i=1}^{n} y_i = n \bar{y}$:
+
+$$\sum_{i=1}^{n} x_i^2 - \bar{x} (n \bar{x}) = \sum_{i=1}^{n} x_i^2 - n \bar{x}^2 = \sum_{i=1}^{n} (x_i - \bar{x})^2 = S_{xx}$$
+
+$$\sum_{i=1}^{n} x_i y_i - \bar{y} (n \bar{x}) = \sum_{i=1}^{n} x_i y_i - n \bar{x} \bar{y} = \sum_{i=1}^{n} (x_i - \bar{x})(y_i - \bar{y}) = S_{xy}$$
+
+**4. Expresiones finales de los estimadores MCO:**
+
+$$\boxed{\hat{\beta}_1 = \frac{S_{xy}}{S_{xx}} = \frac{\displaystyle\sum_{i=1}^{n} (x_i - \bar{x})(y_i - \bar{y})}{\displaystyle\sum_{i=1}^{n} (x_i - \bar{x})^2}}$$
 
 $$\boxed{\hat{\beta}_0 = \bar{y} - \hat{\beta}_1 \bar{x}}$$
 
@@ -272,7 +311,7 @@ $$\hat{\beta}_0^{\text{orig}} = \tilde{\beta}_0 - \sum_{j=1}^{4} \tilde{\beta}_j
 | $\hat{\beta}_1$ (Lagging kVarh) | 1,51373585 | +1,51 kWh por kVarh inductivo |
 | $\hat{\beta}_2$ (Leading kVarh) | -1,10168123 | -1,10 kWh por kVarh capacitivo |
 | $\hat{\beta}_3$ (Lagging PF) | 0,67176410 | +0,67 kWh por % factor potencia |
-| $\hat{\beta}_4$ (NSM) | 0,00006658 | +6,66$\times$10⁻⁵ kWh por segundo |
+| $\hat{\beta}_4$ (NSM) | 0,00006658 | +6,66$\times 10^{-5}$ kWh por segundo |
 
 Costo MSE mínimo: $f(\hat{\beta}) = 112,75999832$  
 Validado contra Statsmodels: diferencia máx $3,17 \times 10^{-11}$ ✓
@@ -330,6 +369,8 @@ $$\alpha < \frac{2}{\lambda_{\max}} = \frac{2}{3,977438} = \boxed{0,502836}$$
 Se genera `figures/A3_gradient_descent.png` (300 DPI) con dos paneles:
 - **Izquierdo:** Escala lineal (zoom en convergentes) — muestra α pequeña (lento) vs α adecuada (rápido).
 - **Derecho:** Escala logarítmica — muestra las tres trayectorias: convergencia lenta, convergencia rápida, y divergencia exponencial.
+
+![Evolución del costo $f(b^{(k)})$ frente a la iteración $k$ para las tres tasas de aprendizaje ($\alpha$ pequeña, adecuada y divergente).](figures/A3_gradient_descent.png)
 
 ## 15. Tabla Comparativa Final: GD vs MCO Exacto
 
@@ -425,12 +466,23 @@ Para cada predictora $X_i$ se ajustó $\hat{y} = \hat{\beta}_0 + \hat{\beta}_1 x
 
 ### 18.2 Cuadro Resumen Completo (valores en unidades del problema)
 
-| $X_i$ | $\hat{y} = \hat{\beta}_0 + \hat{\beta}_1 x$ | $\hat{\sigma}^2$ | $R^2$ | IC($\beta_1$) 95% | IC($\beta_0$) 95% | ICM($Y|x^{*}=20$) | IP($Y|x^{*}=20$) |
-|:---|:---|:---:|:---:|:---|:---|:---|:---|
-| `Lagging_Current_Reactive.Power_kVarh` | $3,4273 + 1,8380\,x$ | 220,2613 | 0,8031 | $[1,8285;\ 1,8476]$ | $[3,2283;\ 3,6262]$ | $[40,0192;\ 40,3572]$ | $[11,0985;\ 69,2779]$ |
-| `Leading_Current_Reactive_Power_kVarh` | $33,0526 - 1,4636\,x$ | 1000,4676 | 0,1056 | $[-1,5083;\ -1,4190]$ | $[32,6791;\ 33,4261]$ | $[2,9876;\ 4,5717]$ | $[-58,2216;\ 65,7808]$ |
-| `Lagging_Current_Power_Factor` | $-27,5838 + 0,6822\,x$ | 951,9319 | 0,1490 | $[0,6651;\ 0,6993]$ | $[-28,9970;\ -26,1706]$ | $[-15,0233;\ -12,8561]$ | $[-74,4231;\ 46,5436]$ |
-| `NSM` | $13,9376 + 3,1460\cdot10^{-4}\,x$ | 1056,9908 | 0,0550 | $[3,010\times10^{-4};\ 3,282\times10^{-4}]$ | $[13,2620;\ 14,6131]$ | $[13,2685;\ 14,6192]$ | $[-49,7831;\ 77,6708]$ |
+Para las cuatro predictoras (con nombres completos de columna: `Lagging_Current_Reactive.Power_kVarh`, `Leading_Current_Reactive_Power_kVarh`, `Lagging_Current_Power_Factor`, `NSM`), ajustes e indicadores de bondad:
+
+| $X_i$ | $\hat{y} = \hat{\beta}_0 + \hat{\beta}_1 x$ | $\hat{\sigma}^2$ | $R^2$ |
+|:---|:---|:---:|:---:|
+| Lagging kVarh (inductiva) | $3,4273 + 1,8380\,x$ | 220,2613 | 0,8031 |
+| Leading kVarh (capacitiva) | $33,0526 - 1,4636\,x$ | 1000,4676 | 0,1056 |
+| Lagging PF | $-27,5838 + 0,6822\,x$ | 951,9319 | 0,1490 |
+| NSM | $13,9376 + 3,1460\cdot10^{-4}\,x$ | 1056,9908 | 0,0550 |
+
+Intervalos al $95\%$ para coeficientes y para la respuesta en $x^{*} = 20$ (unidades de cada predictora):
+
+| $X_i$ | IC($\beta_1$) 95% | IC($\beta_0$) 95% | ICM($Y|x^{*}=20$) | IP($Y|x^{*}=20$) |
+|:---------|:------------|:-------------|:-------------|:-------------|
+| Lagging kVarh (inductiva) | $[1,8285;\ 1,8476]$ | $[3,2283;\ 3,6262]$ | $[40,0192;\ 40,3572]$ | $[11,0985;\ 69,2779]$ |
+| Leading kVarh (capacitiva) | $[-1,5083;\ -1,4190]$ | $[32,6791;\ 33,4261]$ | $[2,9876;\ 4,5717]$ | $[-58,2216;\ 65,7808]$ |
+| Lagging PF | $[0,6651;\ 0,6993]$ | $[-28,9970;\ -26,1706]$ | $[-15,0233;\ -12,8561]$ | $[-74,4231;\ 46,5436]$ |
+| NSM | $[3,010;\ 3,282]\times 10^{-4}$ | $[13,2620;\ 14,6131]$ | $[13,2685;\ 14,6192]$ | $[-49,7831;\ 77,6708]$ |
 
 > **Observación:** en los modelos 2 y 3 los ICM/IP en $x^{*}=20$ arrojan límites inferiores negativos (consumo físico imposible), señal de que $x^{*}=20$ cae en zona de extrapolación forzada por la consigna; el modelo 4 evalúa $x^{*}=20$ segundos (00:00:20). Esto reafirma que la única predictora con significado físico pleno en $x^{*}=20$ kVarh es la inductiva.
 
@@ -445,6 +497,8 @@ Para cada predictora $X_i$ se ajustó $\hat{y} = \hat{\beta}_0 + \hat{\beta}_1 x
 ### 18.4 Gráfico del Mejor Modelo
 
 Se genera `figures/B2_mejor_modelo.png` (300 DPI): diagrama de dispersión de `Usage_kWh` vs `Lagging_Current_Reactive.Power_kVarh` (muestra de 5 000 puntos) con la recta de mínimos cuadrados $\hat{y} = 3,4273 + 1,8380\,x$ superpuesta.
+
+![Diagrama de dispersión de Usage_kWh vs Lagging_Current_Reactive.Power_kVarh con la recta de mínimos cuadrados superpuesta.](figures/B2_mejor_modelo.png)
 
 ## 19. B.3 — Test de Hipótesis sobre la Pendiente
 
@@ -599,15 +653,16 @@ $$R^{2} = 0,8992 \qquad R^{2}_{\text{ajustado}} = 0,8992$$
 
 ## Anexo I — Bitácora de Uso de Inteligencia Artificial
 
-| # | Fecha | Herramienta | Qué se le pidió | Resumen de la respuesta | ¿Se aceptó? | Cambios realizados y motivo | Ítem afectado |
-|---|-------|-------------|-----------------|------------------------|-------------|----------------------------|---------------|
-| 1 | 25/10/2026 | opencode (nemotron-3-ultra-free) | Generar código Python para A.1: carga, modelos cuadrático/lineal, derivadas, punto crítico, gráficos | Código completo `src/parte_a_analisis.py` con validaciones y statsmodels | Sí, con cambios | Fix validación statsmodels (`.values`), variable `beta_0_quad`, interpretación punto crítico | Código A.1 |
-| 2 | 25/10/2026 | opencode (nemotron-3-ultra-free) | Generar informe A.1 en Markdown con fórmulas LaTeX, tablas, interpretación industrial | Documento base `informe/resolucion_completa.md` | Sí | Redacción técnica, verificación números, corrección interpretación (punto crítico DENTRO rango) | Informe A.1 |
-| 3 | 25/10/2026 | opencode (nemotron-3-ultra-free) | Generar código Python para A.2 (derivadas parciales, ecuaciones normales, validación) y A.3 (gradiente descendiente múltiple B.5, 3 tasas α, gráfico) | Código completo `src/parte_a2_a3.py` con desarrollo analítico impreso, validaciones, escalado z-score, 3 experimentos | Sí, con cambios | Fix complex warnings (np.real en eigenvals), transformación inversa coeficientes, supresión warnings overflow | Código A.2, A.3 |
-| 4 | 25/10/2026 | opencode (nemotron-3-ultra-free) | Actualizar informe con desarrollo completo A.2 y A.3: fórmulas paso a paso, tablas numéricas, análisis condicionamiento, resultados GD, interpretación | Este documento actualizado `informe/resolucion_completa.md` | Sí | Integración completa A.2+A.3, verificación todos los números contra salida scripts, tablas comparativas, bitácora extendida | Informe A.2, A.3 |
-| 5 | 25/10/2026 | opencode (nemotron-3-ultra-free) | Implementar B.1–B.5 según TRABAJO.md: descomposición STC/SCR/SCE con gl, σ̂², R² con aclaraciones; 4 regresiones simples con IC de coeficientes, ICM e IP al 95% en x*=20; test T sobre pendiente con conclusión industrial; intervalos con sustitución numérica en x*=20 kVarh; regresión múltiple matricial con X'X, su inversa, R² ajustado por ambas fórmulas | Script `src/parte_b_estadistica.py` completo, gráfico `figures/B2_mejor_modelo.png`, tablas y validaciones contra statsmodels | Sí, con cambios | Se verificaron todos los valores contra statsmodels (diff < 1e-10); nota metodológica sobre ICM negativos en modelos 2 y 3 (extrapolación en x*=20) agregada por criterio del grupo | Código B.1–B.5 |
-| 6 | 25/10/2026 | opencode (nemotron-3-ultra-free) | Redactar en el informe el desarrollo paso a paso de B.1–B.5: fórmulas LaTeX, sustituciones numéricas explícitas, tablas de resultados, interpretación siderúrgica, conclusión del test en lenguaje no estadístico | Secciones 17–22 de `informe/resolucion_completa.md` | Sí | Verificación de cada sustitución numérica contra la salida del script; redacción de las limitaciones de R² y de la diferencia ICM/IP con amplitudes comparadas | Informe B.1–B.5 |
-| 7 | 25/10/2026 | opencode (nemotron-3-ultra-free) | Generar PDF completo del informe con las figuras insertadas en cada apartado (A.1, A.3 y B.2), usando pandoc + tectonic | `informe/resolucion_completa.pdf` renderizado con imágenes embebidas a 300 DPI | Sí | Se consolidaron las notas de las figuras existentes como leyendas con número de figura; verificación del número de páginas y de que las 3 imágenes aparezcan en las secciones correctas | Informe (PDF entrega) |
+| # | Fecha | Herramienta | Qué se pidió | Resumen de la respuesta | ¿Se aceptó? | Cambios y motivo | Ítem afectado |
+|:--|:---------------|:---------------|:------------------------|:--------------------|:--------|:---------------------------|:------------|
+| 1 | 25/10/2026 | opencode | Código Python de A.1: carga, modelos lineal/cuadrático, derivadas, punto crítico, gráficos | `src/parte_a_analisis.py` con validaciones y statsmodels | Sí, con cambios | Fix validación statsmodels (`.values`), variable `beta_0_quad`, interpretación del punto crítico | Código A.1 |
+| 2 | 25/10/2026 | opencode | Informe de A.1 en Markdown con LaTeX, tablas e interpretación industrial | Base de `informe/resolucion_completa.md` | Sí | Redacción técnica y verificación de números | Informe A.1 |
+| 3 | 25/10/2026 | opencode | Código Python de A.2 y A.3: MCO, 3 tasas de α, escalado z-score, gráfico | `src/parte_a2_a3.py` con desarrollo analítico impreso | Sí, con cambios | Fix warnings de complejos y overflow; transformación inversa de coeficientes | Código A.2, A.3 |
+| 4 | 25/10/2026 | opencode | Actualizar informe con desarrollo completo A.2 y A.3 | `informe/resolucion_completa.md` ampliado | Sí | Integración A.2+A.3, verificación de números y tablas comparativas | Informe A.2, A.3 |
+| 5 | 25/10/2026 | opencode | Código Python de B.1–B.5: sumas de cuadrados, 4 regresiones simples, IC/ICM/IP, test T, múltiple matricial | `src/parte_b_estadistica.py` + `figures/B2_mejor_modelo.png` | Sí, con cambios | Validación contra statsmodels (diff < 1e-10); nota sobre ICM negativos en x*=20 | Código B.1–B.5 |
+| 6 | 25/10/2026 | opencode | Redactar B.1–B.5 paso a paso en el informe | Secciones 17–22 del informe | Sí | Sustituciones numéricas verificadas; limitaciones de R² y comparación ICM/IP | Informe B.1–B.5 |
+| 7 | 25/10/2026 | opencode | PDF del informe con figuras insertadas (pandoc + tectonic) | `informe/resolucion_completa.pdf` con imágenes a 300 DPI | Sí | Leyendas numeradas; verificación de figuras en A.1, A.3 y B.2 | PDF entrega |
+| 8 | 29/10/2026 | opencode | Corregir A.1 y A.2 del informe según `src/parte_a1.md` y `src/parte_a2.md`: sombreros en β̂, justificación de $(X^TX)^{-1}$, conversión a kWh/h, derivada lineal constante, desarrollo paso a paso, sistema 2×2 y despeje MCO completo | `informe/resolucion_completa.md` corregido | Sí | Estructura y desarrollo replicados de ambos md (secciones 6.1–6.5); se regeneraron PDF y DOCX | A.1, A.2 (md + PDF + DOCX) |
 
 ---
 
